@@ -1,0 +1,36 @@
+import pandas as pd
+import json
+from pathlib import Path
+
+# --- JSON dosyasının yolu (önceden kaydettiğin dosya) ---
+json_path = Path("/tmp/energy_prices.json")
+
+# --- JSON'u güvenli şekilde oku ---
+with open(json_path, "r", encoding="utf-8") as f:
+    data = json.load(f)
+
+# --- JSON yapısını kontrol et ---
+if isinstance(data, list):
+    # Eğer JSON doğrudan bir listeyse → direkt DataFrame'e çevir
+    df = pd.DataFrame(data)
+elif isinstance(data, dict):
+    # Eğer JSON bir sözlükse → içindeki listeyi bul
+    # En olası listeyi otomatik tespit eder
+    for key, value in data.items():
+        if isinstance(value, list):
+            df = pd.DataFrame(value)
+            print(f"Data found under key: '{key}'")
+            break
+    else:
+        raise ValueError("JSON içinde liste veri bulunamadı!")
+else:
+    raise ValueError("JSON formatı beklenenden farklı!")
+
+# --- İlk 5 satırı göster ---
+print("✅ DataFrame başarıyla oluşturuldu:")
+display(df.head())
+
+# --- İsteğe bağlı: CSV veya Parquet olarak kaydet ---
+csv_path = Path("/tmp/energy_prices.csv")
+df.to_csv(csv_path, index=False)
+print(f"CSV olarak kaydedildi: {csv_path}")
