@@ -1,0 +1,30 @@
+import requests
+import json
+from pathlib import Path
+from IPython.display import FileLink, display
+
+# --- API parametreleri (tarihleri istediğin gibi değiştir) ---
+from_date = "2025-10-15T00:00:00.000Z"
+till_date = "2025-10-22T23:59:59.999Z"
+
+url = (
+    f"https://api.energyzero.nl/v1/energyprices?"
+    f"fromDate={from_date}&tillDate={till_date}"
+    f"&interval=4&usageType=1&inclBtw=false"
+)
+
+# --- API isteği ---
+response = requests.get(url, timeout=30)
+response.raise_for_status()  # Hata varsa durdur
+
+data = response.json()
+
+# --- JSON dosyası olarak kaydet ---
+out_dir = Path("/tmp")  # Fabric geçici dizini
+out_file = out_dir / "energy_prices.json"
+
+with open(out_file, "w", encoding="utf-8") as f:
+    json.dump(data, f, ensure_ascii=False, indent=2)
+
+print(f"JSON dosyası oluşturuldu: {out_file}")
+display(FileLink(str(out_file)))  # indirme linki göster
